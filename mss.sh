@@ -216,12 +216,14 @@ function vt_lookup {
 	# skip current loop iteration if vendor detected malware in virustotal scan
 	if grep -Fiq $vendor_name $vt_vendors; then
 		log "$vendor_name detected malware through virustotal - skipping submission"
+		echo "skipping submission"
 		# loop control
 		#continue # this doesn't work from within a function?
 		loop_control="continue"
 	else
 		# continue with sample submission
 		log "$vendor_name did not detect malware through virustotal - proceeding to sample submission"
+		echo "sending sample"
 	fi
 }
 
@@ -232,7 +234,7 @@ function vt_cleanup {
 
 function progress {
 	# display vendor name and progress
-	echo "sending sample to vendor $counter of $vendor_total - $vendor_name"
+	echo "vendor $counter of $vendor_total - $vendor_name"
 	# add +1 to counter
 	let counter=counter+1
 }
