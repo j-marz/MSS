@@ -102,7 +102,6 @@ function create_archive {
 # send email function
 function send_email {
 #### TO DO #### need to add options for SMTP auth, SMTP server and SMTP port
-#### TO DO #### need to add reply-to address using $report_email
 	email_body_base="Malware sample attached"
 	email_body_archvie_password="The sample has been encrypted with the following password: "$archive_password""
 	email_body_checksum="SHA256SUM $archive_sha256"
@@ -118,8 +117,11 @@ function send_email {
 	fi
 	# send the email
 	echo -e "$email_body" | mail -s "$email_subject" \
-		-A $archive_name $vendor_email -a From:$sender_email \
-		-a X-MSS:"$mss_name $mss_version" -a Content-Type:"text/plain"
+		-A $archive_name $vendor_email \
+		-a From:$sender_email \
+		-a Reply-To:$report_email \
+		-a X-MSS:"$mss_name $mss_version" \
+		-a Content-Type:"text/plain"
 	# log
 	log "malware sample submitted to $vendor_name via email - $vendor_email"
 }
