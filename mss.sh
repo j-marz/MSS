@@ -37,9 +37,9 @@ function log {
 # check for dependencies
 function dependency_check {
 	log "checking dependencies"
-	for dependency in "${dependencies[@]}" 
+	for dependency in "${dependencies[@]}"
 		do
-			if [ -x $(command -v $dependency) ]; then
+			if [ -x "$(command -v $dependency)" ]; then
 		    	log "$dependency dependency exists"
 			else
 		    	log "$dependency dependency does not exist - please install using 'apt-get install $dependency'"
@@ -148,10 +148,10 @@ function virustotal {
 			# consider chaning this to search for sha256 instead of uploading file to save bandwidth and time
 		curl -F file=@$filename -F apikey=$virustotal_api_key $vt_api_scan_url > $vt_scan
 		# set variables from vt json response
-		vt_scan_id=$(cat $vt_scan | jq '.scan_id' | awk -F '"' '{print $2}') # must remove double quotes
-		vt_sha256=$(cat $vt_scan | jq '.sha256' | awk -F '"' '{print $2}') # must remove double quotes
-		vt_rsp_code=$(cat $vt_scan | jq '.response_code')
-		vt_verbose_msg=$(cat $vt_scan | jq '.verbose_msg')
+		vt_scan_id="$(cat $vt_scan | jq '.scan_id' | awk -F '"' '{print $2}')" # must remove double quotes
+		vt_sha256="$(cat $vt_scan | jq '.sha256' | awk -F '"' '{print $2}')" # must remove double quotes
+		vt_rsp_code="$(cat $vt_scan | jq '.response_code')"
+		vt_verbose_msg="$(cat $vt_scan | jq '.verbose_msg')"
 		# log
 		log "virustotal scan submitted - scan id: $vt_scan_id"
 		echo "virustotal scan submitted - scan id: $vt_scan_id"
@@ -169,8 +169,8 @@ function virustotal {
 			# write vendors to file for later checks
 			cat $vt_report | jq '.scans | . as $object | keys[] | select($object[.].detected == true)' > $vt_vendors
 			# set variables
-			vt_total=$(cat $vt_report | jq '.total')
-			vt_positives=$(cat $vt_report | jq '.positives')
+			vt_total="$(cat $vt_report | jq '.total')"
+			vt_positives="$(cat $vt_report | jq '.positives')"
 			# log
 			log "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 			echo "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
@@ -182,8 +182,8 @@ function virustotal {
 			sleep 15
 			# rescan file using sha256sum to get latest results from virustotal
 			curl --request POST --url $vt_api_rescan_url -d apikey=$virustotal_api_key -d resource=$vt_sha256 > $vt_rescan
-			vt_scan_id=$(cat $vt_rescan | jq '.scan_id' | awk -F '"' '{print $2}') # must remove double quotes
-			vt_verbose_msg=$(cat $vt_scan | jq '.verbose_msg')
+			vt_scan_id="$(cat $vt_rescan | jq '.scan_id' | awk -F '"' '{print $2}')" # must remove double quotes
+			vt_verbose_msg="$(cat $vt_scan | jq '.verbose_msg')"
 			log "virustotal rescan submitted - scan id: $vt_scan_id"
 			echo "virustotal rescan submitted - scan id: $vt_scan_id"
 			log "virustotal verbose msg: $vt_verbose_msg"
@@ -196,8 +196,8 @@ function virustotal {
 			# write vendors to file for later checks
 			cat $vt_report | jq '.scans | . as $object | keys[] | select($object[.].detected == true)' > $vt_vendors
 			# set variables
-			vt_total=$(cat $vt_report | jq '.total')
-			vt_positives=$(cat $vt_report | jq '.positives')
+			vt_total="$(cat $vt_report | jq '.total')"
+			vt_positives="$(cat $vt_report | jq '.positives')"
 			# log
 			log "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 			echo "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
@@ -286,7 +286,7 @@ file_check $vendors_web
 	# print config to screen and ask user to confirm?
 
 # store working directory in variable
-wd=$(pwd)
+wd="$(pwd)"
 
 # set sample file - ask user for interactive input
 read -p "Sample filename from $wd (e.g. sample.exe): " filename
