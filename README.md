@@ -9,10 +9,11 @@ Uses vendor specific configs for sample submission and also skips vendors that a
 * zip
 * 7z
 * jq
+* local SMTP server (e.g. sendmail or postfix)
 
 ## Usage
-1. Populate configuration in 'mss.conf'
-2. Run './mss.sh'
+1. Populate configuration in `mss.conf`
+2. Run `./mss.sh`
 
 ## Limitations
 * Can only submit 1 sample at a time
