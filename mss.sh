@@ -254,21 +254,6 @@ function finish {
 	exit
 }
 
-#### TO DO ####
-# virustotal vendor check
-	# compare vendor list with config and notify user if vendor contact doesn't exist for sample submission
-
-# web form submission
-#function web_form_submission {
-	# send using cURL
-	# check response status code for success
-#}
-# md5sum the config files and report on change during next run?
-# NTH
-
-# The same archive should be used for multiple submissions where configs match
-# Creating archives for vendors that have the same config is not efficient
-
 # ----- script -----
 
 # start logging
@@ -281,11 +266,6 @@ dependency_check
 file_check $config
 file_check $vendors_email
 file_check $vendors_web
-
-#### TO DO ####
-	# config should be validated (NTH)
-	# check values in config
-	# print config to screen and ask user to confirm?
 
 # store working directory in variable
 wd="$(pwd)"
@@ -309,7 +289,7 @@ virustotal
 # start vendor counter at 1
 counter=1
 
-# main loop
+# email submission loop
 grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 	do
 		# assign columns to variables
@@ -341,8 +321,30 @@ grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 		delete_archive
 	done
 
+# web submission loop
+
+
 # clean up
 vt_cleanup
 
 # done
 finish
+
+#### TO DO ####
+# config should be validated (NTH)
+	# check values in config
+	# print config to screen and ask user to confirm?
+
+# virustotal vendor check
+	# compare vendor list with config and notify user if vendor contact doesn't exist for sample submission
+
+# web form submission
+#function web_form_submission {
+	# send using cURL
+	# check response status code for success
+#}
+# md5sum the config files and report on change during next run?
+# NTH
+
+# The same archive should be used for multiple submissions where configs match
+# Creating archives for vendors that have the same config is not efficient
