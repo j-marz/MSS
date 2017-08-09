@@ -135,6 +135,7 @@ function delete_archive {
 
 # check virustotal - report on virustotal results and skip vendors that already detect the malware in virustotal
 function virustotal {
+	#### TO DO #### check VT response code after rescan and wait/retry instead of attempting to retrieve report when it's not ready
 	#check if api key exists in config
 	if [ -z $virustotal_api_key ]; then
 		log "virustotal_api_key is null, skipping virustotal scans"
@@ -145,7 +146,7 @@ function virustotal {
 		vt_report="/tmp/vt_report.json"
 		vt_vendors="/tmp/vt_vendors.json"
 		# submit sample to virustotal public api
-			# consider chaning this to search for sha256 instead of uploading file to save bandwidth and time
+			# consider changing this to search for sha256 instead of uploading file to save bandwidth and time
 		curl -F file=@$filename -F apikey=$virustotal_api_key $vt_api_scan_url > $vt_scan
 		# set variables from vt json response
 		vt_scan_id="$(cat $vt_scan | jq '.scan_id' | awk -F '"' '{print $2}')" # must remove double quotes
@@ -161,9 +162,9 @@ function virustotal {
 		if [ $vt_rsp_code -eq 0 ]; then
 			log "no data exists in virustotal database - this is a brand new submission"
 			echo "no data exists in virustotal database - this is a brand new submission"
-			# wait for scan to complete - sleep for 15 seconds
-			echo "waiting 15sec for virustotal scan to complete"
-			sleep 15
+			# wait for scan to complete - sleep for 60 seconds
+			echo "waiting 60sec for virustotal scan to complete"
+			sleep 60
 			# retrieve scan report
 			curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
 			# write vendors to file for later checks
@@ -188,7 +189,7 @@ function virustotal {
 			echo "virustotal rescan submitted - scan id: $vt_scan_id"
 			log "virustotal verbose msg: $vt_verbose_msg"
 			echo "virustotal verbose msg: $vt_verbose_msg"
-			# wait for scan to complete - sleep for 30 seconds
+			# wait for scan to complete - sleep for 60 seconds
 			echo "waiting 60sec for virustotal rescan to complete"
 			sleep 60
 			# retrieve scan report
