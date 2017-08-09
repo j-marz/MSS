@@ -189,8 +189,8 @@ function virustotal {
 			log "virustotal verbose msg: $vt_verbose_msg"
 			echo "virustotal verbose msg: $vt_verbose_msg"
 			# wait for scan to complete - sleep for 30 seconds
-			echo "waiting 30sec for virustotal scan to complete"
-			sleep 30
+			echo "waiting 60sec for virustotal rescan to complete"
+			sleep 60
 			# retrieve scan report
 			curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
 			# write vendors to file for later checks
