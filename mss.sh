@@ -135,7 +135,6 @@ function delete_archive {
 
 # check virustotal - report on virustotal results and skip vendors that already detect the malware in virustotal
 function virustotal {
-	#### TO DO #### check VT response code after rescan and wait/retry instead of attempting to retrieve report when it's not ready
 	#check if api key exists in config
 	if [ -z $virustotal_api_key ]; then
 		log "virustotal_api_key is null, skipping virustotal scans"
@@ -162,11 +161,27 @@ function virustotal {
 		if [ $vt_rsp_code -eq 0 ]; then
 			log "no data exists in virustotal database - this is a brand new submission"
 			echo "no data exists in virustotal database - this is a brand new submission"
-			# wait for scan to complete - sleep for 60 seconds
-			echo "waiting 60sec for virustotal scan to complete"
-			sleep 60
+			# wait for scan to complete - sleep for 30 seconds
+			echo "waiting 30sec for virustotal scan to complete"
+			sleep 30
 			# retrieve scan report
 			curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
+			vt_rsp_code="$(cat $vt_report | jq '.response_code')"
+			vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
+			# retry if report isn't ready
+			if [ $vt_rsp_code -eq -2 ]; then
+				while [ $vt_rsp_code -eq -2 ]; do
+					log "virustotal verbose msg: $vt_verbose_msg"
+					echo "virustotal verbose msg: $vt_verbose_msg"
+					log "sleeping for another 30sec..."
+					echo "sleeping for another 30sec..."
+					sleep 30
+					curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
+					vt_rsp_code="$(cat $vt_report | jq '.response_code')"
+					vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
+				done
+#### note: should check other response codes here...
+			fi
 			# write vendors to file for later checks
 			cat $vt_report | jq '.scans | . as $object | keys[] | select($object[.].detected == true)' > $vt_vendors
 			# set variables
@@ -178,22 +193,37 @@ function virustotal {
 		elif [ $vt_rsp_code -eq 1 ]; then
 			log "file found in virustotal database - rescaning to get latest detection results"
 			echo "file found in virustotal database - rescaning to get latest detection results"
-			# wait for scan to complete - sleep for 15 seconds
-			echo "waiting 15sec for virustotal scan to complete"
-			sleep 15
+			# wait 2 seconds - probably not required...
+			sleep 2
 			# rescan file using sha256sum to get latest results from virustotal
 			curl --request POST --url $vt_api_rescan_url -d apikey=$virustotal_api_key -d resource=$vt_sha256 > $vt_rescan
 			vt_scan_id="$(cat $vt_rescan | jq '.scan_id' | awk -F '"' '{print $2}')" # must remove double quotes
-			vt_verbose_msg="$(cat $vt_scan | jq '.verbose_msg')"
+			vt_verbose_msg="$(cat $vt_rescan | jq '.verbose_msg')"
 			log "virustotal rescan submitted - scan id: $vt_scan_id"
 			echo "virustotal rescan submitted - scan id: $vt_scan_id"
 			log "virustotal verbose msg: $vt_verbose_msg"
 			echo "virustotal verbose msg: $vt_verbose_msg"
-			# wait for scan to complete - sleep for 60 seconds
-			echo "waiting 60sec for virustotal rescan to complete"
-			sleep 60
+			# wait for scan to complete - sleep for 30 seconds
+			echo "waiting 30sec for virustotal rescan to complete"
+			sleep 30
 			# retrieve scan report
 			curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
+			vt_rsp_code="$(cat $vt_report | jq '.response_code')"
+			vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
+			# retry if report isn't ready
+			if [ $vt_rsp_code -eq -2 ]; then
+				while [ $vt_rsp_code -eq -2 ]; do
+					log "virustotal verbose msg: $vt_verbose_msg"
+					echo "virustotal verbose msg: $vt_verbose_msg"
+					log "sleeping for another 30sec..."
+					echo "sleeping for another 30sec..."
+					sleep 30
+					curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
+					vt_rsp_code="$(cat $vt_report | jq '.response_code')"
+					vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
+				done	
+#### note: should check other response codes here...
+			fi
 			# write vendors to file for later checks
 			cat $vt_report | jq '.scans | . as $object | keys[] | select($object[.].detected == true)' > $vt_vendors
 			# set variables
@@ -207,6 +237,8 @@ function virustotal {
 			echo "unexpected response code from virustotal - response_code: $vt_rsp_code"
 			log "aborting virustotal scan"
 			echo "aborting virustotal scan"
+			log "sample will be submitted to all vendors"
+			echo "sample will be submitted to all vendors"
 		fi
 	fi
 }
@@ -214,16 +246,23 @@ function virustotal {
 # lookup vendor name in vt results
 	# requires vendor names from config to match vt results
 function vt_lookup {
-	# skip current loop iteration if vendor detected malware in virustotal scan
-	if grep -Fiq $vendor_name $vt_vendors; then
-		log "$vendor_name detected malware through virustotal - skipping submission"
-		echo "skipping submission"
-		# loop control
-		#continue # this doesn't work from within a function?
-		loop_control="continue"
+	# check if VT results exist
+	if [ -f $vt_vendors ]; then
+		# skip current loop iteration if vendor detected malware in virustotal scan
+		if grep -Fiq $vendor_name $vt_vendors; then
+			log "$vendor_name detected malware through virustotal - skipping submission"
+			echo "skipping submission"
+			# loop control
+			#continue # this doesn't work from within a function?
+			loop_control="continue"
+		else
+			# continue with sample submission
+			log "$vendor_name did not detect malware through virustotal - proceeding to sample submission"
+			echo "sending sample"
+		fi
 	else
 		# continue with sample submission
-		log "$vendor_name did not detect malware through virustotal - proceeding to sample submission"
+		log "unable to determine if $vendor_name detected via virustotal due to missing virustotal results - $vt_vendors"
 		echo "sending sample"
 	fi
 }
