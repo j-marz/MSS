@@ -191,7 +191,13 @@ function virustotal {
 			# set variables
 			vt_total="$(cat $vt_report | jq '.total')"
 			vt_positives="$(cat $vt_report | jq '.positives')"
+			vt_scan_date="$(cat $vt_report | jq '.scan_date')"
+			vt_permalink="$(cat $vt_report | jq '.permalink')"
 			# log
+			log "virustotal report scan date: $vt_scan_date"
+			echo "virustotal report scan date: $vt_scan_date"
+			log "virustotal report link: $vt_permalink"
+			echo "virustotal report link: $vt_permalink"
 			log "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 			echo "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 		elif [ $vt_rsp_code -eq 1 ]; then
@@ -237,7 +243,13 @@ function virustotal {
 			# set variables
 			vt_total="$(cat $vt_report | jq '.total')"
 			vt_positives="$(cat $vt_report | jq '.positives')"
+			vt_scan_date="$(cat $vt_report | jq '.scan_date')"
+			vt_permalink="$(cat $vt_report | jq '.permalink')"
 			# log
+			log "virustotal report scan date: $vt_scan_date"
+			echo "virustotal report scan date: $vt_scan_date"
+			log "virustotal report link: $vt_permalink"
+			echo "virustotal report link: $vt_permalink"
 			log "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 			echo "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 		else 
