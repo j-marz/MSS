@@ -11,6 +11,8 @@ Uses vendor specific configs for sample submission and also skips vendors that a
 * jq
 * local SMTP server (e.g. sendmail or postfix)
 
+Install all dependencies on Ubuntu using `sudo apt-get install mailutils zip p7zip-full jq sendmail`
+
 ## Usage
 1. Populate configuration in `mss.conf`
 2. Run `./mss.sh`
