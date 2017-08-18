@@ -341,7 +341,7 @@ log "sample description: $description"
 
 # count number of vendors
 vendor_total="$(grep -v '^$\|^#' $vendors_email | wc -l)"
-log "$vendor_total vendors configs loaded"
+log "$vendor_total vendor configs loaded"
 
 # virustotal scans
 virustotal
