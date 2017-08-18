@@ -165,6 +165,8 @@ function virustotal {
 			echo "waiting 30sec for virustotal scan to complete"
 			sleep 30
 			# retrieve scan report
+			log "attempting to retrieve virustotal scan report"
+			echo "attempting to retrieve virustotal scan report"
 			curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
 			vt_rsp_code="$(cat $vt_report | jq '.response_code')"
 			vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
@@ -176,6 +178,8 @@ function virustotal {
 					log "sleeping for another 30sec..."
 					echo "sleeping for another 30sec..."
 					sleep 30
+					log "attempting to retrieve virustotal scan report"
+					echo "attempting to retrieve virustotal scan report"
 					curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
 					vt_rsp_code="$(cat $vt_report | jq '.response_code')"
 					vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
@@ -207,6 +211,8 @@ function virustotal {
 			echo "waiting 30sec for virustotal rescan to complete"
 			sleep 30
 			# retrieve scan report
+			log "attempting to retrieve virustotal scan report"
+			echo "attempting to retrieve virustotal scan report"
 			curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
 			vt_rsp_code="$(cat $vt_report | jq '.response_code')"
 			vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
@@ -218,6 +224,8 @@ function virustotal {
 					log "sleeping for another 30sec..."
 					echo "sleeping for another 30sec..."
 					sleep 30
+					log "attempting to retrieve virustotal scan report"
+					echo "attempting to retrieve virustotal scan report"
 					curl --request POST --url $vt_api_report_url -d apikey=$virustotal_api_key -d resource=$vt_scan_id > $vt_report
 					vt_rsp_code="$(cat $vt_report | jq '.response_code')"
 					vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
