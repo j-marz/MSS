@@ -323,6 +323,7 @@ log "mss.sh started"
 dependency_check
 
 # check configs exist
+log "checking if MSS configs exist"
 file_check $config
 file_check $vendors_email
 file_check $vendors_web
@@ -344,6 +345,7 @@ vendor_total="$(grep -v '^$\|^#' $vendors_email | wc -l)"
 log "$vendor_total vendor configs loaded"
 
 # virustotal scans
+log "sending sample to virustotal api"
 virustotal
 
 # start vendor counter at 1
