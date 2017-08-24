@@ -299,6 +299,10 @@ function progress {
 	let counter=counter+1
 }
 
+function email_count {
+	let emails_sent=emails_sent+1
+}
+
 function abort {
 	echo "something went wrong..."
 	echo "please review $log"
@@ -351,6 +355,9 @@ virustotal
 # start vendor counter at 1
 counter=1
 
+# start email count at 0
+emails_sent=0
+
 # email submission loop
 grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 	do
@@ -380,8 +387,14 @@ grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 			continue
 		fi
 		send_email
+		email_count
 		delete_archive
 	done
+
+# count email submission
+log "sample sent to $emails_sent of $vendor_total vendors"
+echo "sample sent to $emails_sent of $vendor_total vendors"
+
 
 # web submission loop
 
