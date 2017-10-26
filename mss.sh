@@ -357,7 +357,7 @@ log "sample filename: $filename"
 file_check $filename
 
 # set sample description - ask user for interactive input
-read -p "Sample description (e.g. received via phishing email): " description
+read -p "Sample description for email and virustotal comments (e.g. received via phishing email): " description
 log "sample description: $description"
 
 # count number of vendors
