@@ -24,6 +24,8 @@ mss_version="v0.2"
 vt_api_scan_url="https://www.virustotal.com/vtapi/v2/file/scan"
 vt_api_rescan_url="https://www.virustotal.com/vtapi/v2/file/rescan"
 vt_api_report_url="https://www.virustotal.com/vtapi/v2/file/report"
+vt_api_comment_url="https://www.virustotal.com/vtapi/v2/comments/put"
+github_repo="https://github.com/j-marz/MSS"
 
 # import main configuration
 source $config
@@ -259,6 +261,20 @@ function virustotal {
 			echo "aborting virustotal scan"
 			log "sample will be submitted to all vendors"
 			echo "sample will be submitted to all vendors"
+		fi
+		# add comment to VT resource
+		vt_comment="Submitted using $mss_name $mss_version - $github_repo - Sample name: $filename - Sample description: $description"
+		curl --request POST --url $vt_api_comment_url -d apikey=$virustotal_api_key -d resource=$vt_sha256 -d comment="$vt_comment" > $vt_report
+		vt_rsp_code="$(cat $vt_report | jq '.response_code')"
+		vt_verbose_msg="$(cat $vt_report | jq '.verbose_msg')"
+		log "virustotal verbose msg: $vt_verbose_msg"
+		echo "virustotal verbose msg: $vt_verbose_msg"
+		if [ $vt_rsp_code -eq 1 ]; then
+			log "comment added to virustotal resource - response_code: $vt_rsp_code"
+			echo "comment added to virustotal resource - response_code: $vt_rsp_code"
+		else
+			log "something went wrong with comment - response_code: $vt_rsp_code"
+			echo "something went wrong with comment - response_code: $vt_rsp_code"
 		fi
 	fi
 }
