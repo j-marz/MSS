@@ -385,7 +385,7 @@ grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 		archive_password=$col5
 		# run functions 
 		#### TO DO ####
-			# split file path and file name so email and attachemnt are named correctly
+			# split file path and file name so email and attachment are named correctly
 				# added $wd to input comment to avoid user supplying full path :(
 		progress
 		vt_lookup
