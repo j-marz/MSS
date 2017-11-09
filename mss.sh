@@ -54,7 +54,7 @@ function dependency_check {
 # check if file exists
 function file_check {
 	# $1 variable passed through when function is called
-	if [ -f $1 ]; then
+	if [ -f "$1" ]; then
 	log "$1 found"
 else
 	log "$1 not found - please create"
@@ -344,9 +344,9 @@ dependency_check
 
 # check configs exist
 log "checking if MSS configs exist"
-file_check $config
-file_check $vendors_email
-file_check $vendors_web
+file_check "$config"
+file_check "$vendors_email"
+file_check "$vendors_web"
 
 # store working directory in variable
 wd="$(pwd)"
@@ -354,7 +354,7 @@ wd="$(pwd)"
 # set sample file - ask user for interactive input
 read -p "Sample filename from $wd (e.g. sample.exe): " filename
 log "sample filename: $filename"
-file_check $filename
+file_check "$filename"
 
 # set sample description - ask user for interactive input
 read -p "Sample description for email and virustotal comments (e.g. received via phishing email): " description
