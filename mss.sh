@@ -404,10 +404,13 @@ grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 		fi
 		send_email
 		email_count
+		#preserve emails_sent variable for use outside of while loop
+		cat $emails_sent > emails_sent.txt
 		delete_archive
 	done
 
 # count email submission
+emails_sent="$(cat emails_sent.txt)"
 log "sample sent to $emails_sent of $vendor_total vendors"
 echo "sample sent to $emails_sent of $vendor_total vendors"
 
