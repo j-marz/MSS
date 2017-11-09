@@ -283,7 +283,7 @@ function virustotal {
 	# requires vendor names from config to match vt results
 function vt_lookup {
 	# check if VT results exist
-	if [ -f $vt_vendors ]; then
+	if [ -f "$vt_vendors" ]; then
 		# skip current loop iteration if vendor detected malware in virustotal scan
 		if grep -Fiq $vendor_name $vt_vendors; then
 			log "$vendor_name detected malware through virustotal - skipping submission"
