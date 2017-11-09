@@ -71,10 +71,10 @@ function create_archive {
 		# check if archive should be password protected
 		if [ $archive_password != "none" ]; then
 			# create archive without password
-			zip $archive_name $filename &> /dev/null
+			zip $archive_name $full_filename &> /dev/null
 		else
 			# create archive with password
-			zip $archive_name --password $archive_password $filename &> /dev/null
+			zip $archive_name --password $archive_password $full_filename &> /dev/null
 		fi
 		# create sha256sum of archive for later use in email body
 		archive_sha256="$(sha256sum $archive_name)"
@@ -83,10 +83,10 @@ function create_archive {
 		# check if archive should be password protected
 		if [ $archive_password != "none" ]; then
 			# create archive without password
-			7z a $archive_name $filename &> /dev/null
+			7z a $archive_name $full_filename &> /dev/null
 		else
 			# create archive with password
-			7z a -p"$archive_password" $archive_name $filename &> /dev/null
+			7z a -p"$archive_password" $archive_name $full_filename &> /dev/null
 		fi
 		# create sha256sum of archive for later use in email body
 		archive_sha256="$(sha256sum $archive_name)"
@@ -148,7 +148,7 @@ function virustotal {
 		vt_vendors="/tmp/vt_vendors.json"
 		# submit sample to virustotal public api
 			# consider changing this to search for sha256 instead of uploading file to save bandwidth and time
-		curl -F file=@$filename -F apikey=$virustotal_api_key $vt_api_scan_url > $vt_scan
+		curl -F file=@$full_filename -F apikey=$virustotal_api_key $vt_api_scan_url > $vt_scan
 		# set variables from vt json response
 		vt_scan_id="$(cat $vt_scan | jq '.scan_id' | awk -F '"' '{print $2}')" # must remove double quotes
 		vt_sha256="$(cat $vt_scan | jq '.sha256' | awk -F '"' '{print $2}')" # must remove double quotes
@@ -348,13 +348,13 @@ file_check "$config"
 file_check "$vendors_email"
 file_check "$vendors_web"
 
-# store working directory in variable
-wd="$(pwd)"
-
 # set sample file - ask user for interactive input
-read -p "Sample filename from $wd (e.g. sample.exe): " filename
-log "sample filename: $filename"
-file_check "$filename"
+read -p "Sample filename (e.g. /tmp/sample.exe): " full_filename
+log "sample filename: $full_filename"
+file_check "$full_filename"
+# separate filename from full file path if present
+filename="$(basename "$full_filename")"
+log "sample basename: $filename"
 
 # set sample description - ask user for interactive input
 read -p "Sample description for email and virustotal comments (e.g. received via phishing email): " description
@@ -384,9 +384,6 @@ grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 		archive_type=$col4
 		archive_password=$col5
 		# run functions 
-		#### TO DO ####
-			# split file path and file name so email and attachment are named correctly
-				# added $wd to input comment to avoid user supplying full path :(
 		progress
 		vt_lookup
 		# loop control for functions
