@@ -402,7 +402,7 @@ grep -v '^$\|^#' $vendors_email | while IFS=, read col1 col2 col3 col4 col5
 		send_email
 		email_count
 		#preserve emails_sent variable for use outside of while loop
-		cat $emails_sent > emails_sent.txt
+		echo "$emails_sent" > emails_sent.txt
 		delete_archive
 	done
 
