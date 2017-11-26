@@ -108,14 +108,15 @@ function send_email {
 	email_body_archvie_password="The sample has been encrypted with the following password: $archive_password"
 	email_body_checksum="SHA256SUM $archive_sha256"
 	email_body_sample_description="Sample description: $description"
+	email_body_reason="This sample was submitted to you because your AV engine didn't detect it on VirusTotal"
 	email_body_signature="Sent using $mss_name $mss_version"
 	# decide on email body based on archive password
 	if [ "$archive_password" = "none" ]; then
-		email_body="$email_body_base \n$email_body_sample_description \n$email_body_checksum \n \n$email_body_signature"
+		email_body="$email_body_base \n$email_body_sample_description \n$email_body_checksum \n$email_body_reason \n \n$email_body_signature"
 	elif [ -z "$archive_password" ]; then # this might be redundant if config values are checked at start of script
-		email_body="$email_body_base \n$email_body_sample_description \n$email_body_checksum \n \n$email_body_signature"
+		email_body="$email_body_base \n$email_body_sample_description \n$email_body_checksum \n$email_body_reason \n \n$email_body_signature"
 	else
-		email_body="$email_body_base \n$email_body_archvie_password \n$email_body_sample_description \n$email_body_checksum \n \n$email_body_signature"
+		email_body="$email_body_base \n$email_body_archvie_password \n$email_body_sample_description \n$email_body_checksum \n$email_body_reason \n \n$email_body_signature"
 	fi
 	# send the email
 	echo -e "$email_body" | mail -s "$email_subject" \
