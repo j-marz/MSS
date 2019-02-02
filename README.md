@@ -13,8 +13,12 @@ Uses vendor specific configs for sample submission and also skips vendors that a
 
 Install all dependencies on Ubuntu using `sudo apt-get install mailutils zip p7zip-full jq sendmail`
 
-Note, make sure your FQDN is set in /etc/hosts so your IP doesn't get blacklisted for using default `localhost.localdomain`
-Example `127.0.0.1	computer.mydomain.com computer localhost`
+## Optional Dependencies
+* clamsubmit - cli tool included in clamav package to submit false negative samples - `sudo apt-get install clamav`
+
+## Configuration
+Make sure your FQDN is set in /etc/hosts so your IP doesn't get blacklisted for using a default value like `localhost.localdomain` in SMTP HELO/EHLO
+Example hosts file entry `127.0.0.1	computer.mydomain.com computer localhost`
 
 ## Usage
 1. Populate configuration in `mss.conf`
