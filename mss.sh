@@ -18,7 +18,7 @@ config=mss.conf
 vendors_email=vendors_email.conf
 vendors_web=vendors_web.conf
 log=mss.log
-dependencies=(mail zip 7z jq)
+dependencies=(mail zip 7z jq)	#excluded clamsubmit as it's optional
 mss_name="Malware Sample Sender"
 mss_version="v0.2"
 vt_api_scan_url="https://www.virustotal.com/vtapi/v2/file/scan"
@@ -411,6 +411,17 @@ grep -v '^$\|^#' "$vendors_email" | while IFS=, read col1 col2 col3 col4 col5
 emails_sent="$(cat emails_sent.txt)"
 log "sample sent to $emails_sent of $vendor_total vendors"
 echo "sample sent to $emails_sent of $vendor_total vendors"
+
+# custom AV sample submission tools
+# submit samples using clamav clamsubmit cli tool - submit as false negative
+if [ -x "$(command -v "clamsubmit")" ]; then
+	log "clamsubmit tool found - reporting to ClamAV"
+	echo "clamsubmit tool found - reporting to ClamAV"
+	clamsubmit -e "$report_email" -N "$mss_name $mss_version" -n "$full_filename"
+else
+	log "WARN: clamsubmit tool not found - skipping submission to ClamAV"
+	echo "WARN: clamsubmit tool not found - skipping submission to ClamAV"
+fi
 
 
 # web submission loop
