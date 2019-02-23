@@ -349,17 +349,29 @@ file_check "$config"
 file_check "$vendors_email"
 file_check "$vendors_web"
 
-# set sample file - ask user for interactive input
-read -p "Sample filename (e.g. /tmp/sample.exe): " full_filename
-log "sample filename: $full_filename"
+# set sample file - ask user for interactive input if sample not provied via bash argument
+if [ -z "$1" ]; then
+	log "Sample not provided via command line argument - switching to interactive prompt"
+	read -p "Sample filename (e.g. /tmp/sample.exe): " full_filename
+	log "sample filename: $full_filename"
+else
+	full_filename="$1"
+	log "sample filename: $full_filename"
+fi
 file_check "$full_filename"
 # separate filename from full file path if present
 filename="$(basename "$full_filename")"
 log "sample basename: $filename"
 
-# set sample description - ask user for interactive input
-read -p "Sample description for email and virustotal comments (e.g. received via phishing email): " description
-log "sample description: $description"
+# set sample description - ask user for interactive input if sample not provied via bash argument
+if [ -z "$2" ]; then
+	log "Sample description not provided via command line argument - switching to interactive prompt"
+	read -p "Sample description for email and virustotal comments (e.g. received via phishing email): " description
+	log "sample description: $description"
+else
+	description="$2"
+	log "sample description: $description"
+fi
 
 # count number of vendors
 vendor_total="$(grep -v '^$\|^#' "$vendors_email" | wc -l)"
