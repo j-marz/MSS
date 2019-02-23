@@ -14,10 +14,10 @@
 set -e
 
 # standard variables
-config=mss.conf
-vendors_email=vendors_email.conf
-vendors_web=vendors_web.conf
-log=mss.log
+config="mss.conf"
+vendors_email="vendors_email.conf"
+vendors_web="vendors_web.conf"
+log="mss.log"
 dependencies=(mail zip 7z jq)	#excluded clamsubmit as it's optional
 mss_name="Malware Sample Sender"
 mss_version="v0.2"
