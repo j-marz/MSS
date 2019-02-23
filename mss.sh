@@ -352,7 +352,7 @@ file_check "$vendors_web"
 # set sample file - ask user for interactive input if sample not provied via bash argument
 if [ -z "$1" ]; then
 	log "Sample not provided via command line argument - switching to interactive prompt"
-	read -p "Sample filename (e.g. /tmp/sample.exe): " full_filename
+	read -rp "Sample filename (e.g. /tmp/sample.exe): " full_filename
 	log "sample filename: $full_filename"
 else
 	full_filename="$1"
@@ -366,7 +366,7 @@ log "sample basename: $filename"
 # set sample description - ask user for interactive input if sample not provied via bash argument
 if [ -z "$2" ]; then
 	log "Sample description not provided via command line argument - switching to interactive prompt"
-	read -p "Sample description for email and virustotal comments (e.g. received via phishing email): " description
+	read -rp "Sample description for email and virustotal comments (e.g. received via phishing email): " description
 	log "sample description: $description"
 else
 	description="$2"
