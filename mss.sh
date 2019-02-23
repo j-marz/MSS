@@ -183,7 +183,7 @@ function virustotal {
 					sleep 30
 					log "attempting to retrieve virustotal scan report"
 					echo "attempting to retrieve virustotal scan report"
-					curl --request POST --url "$vt_api_report"_url -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+					curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
 					vt_rsp_code="$(jq '.response_code' "$vt_report")"
 					vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 				done
