@@ -151,10 +151,10 @@ function virustotal {
 			# consider changing this to search for sha256 instead of uploading file to save bandwidth and time
 		curl -F file=@"$full_filename" -F apikey="$virustotal_api_key" "$vt_api_scan_url" > "$vt_scan"
 		# set variables from vt json response
-		vt_scan_id="$(cat "$vt_scan" | jq '.scan_id' | awk -F '"' '{print $2}')" # must remove double quotes
-		vt_sha256="$(cat "$vt_scan" | jq '.sha256' | awk -F '"' '{print $2}')" # must remove double quotes
-		vt_rsp_code="$(cat "$vt_scan" | jq '.response_code')"
-		vt_verbose_msg="$(cat "$vt_scan" | jq '.verbose_msg')"
+		vt_scan_id="$(jq '.scan_id' "$vt_scan" | awk -F '"' '{print $2}')" # must remove double quotes
+		vt_sha256="$(jq '.sha256' "$vt_scan" | awk -F '"' '{print $2}')" # must remove double quotes
+		vt_rsp_code="$(jq '.response_code' "$vt_scan")"
+		vt_verbose_msg="$(jq '.verbose_msg' "$vt_scan")"
 		# log
 		log "virustotal scan submitted - scan id: $vt_scan_id"
 		echo "virustotal scan submitted - scan id: $vt_scan_id"
@@ -171,8 +171,8 @@ function virustotal {
 			log "attempting to retrieve virustotal scan report"
 			echo "attempting to retrieve virustotal scan report"
 			curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
-			vt_rsp_code="$(cat "$vt_report" | jq '.response_code')"
-			vt_verbose_msg="$(cat "$vt_report" | jq '.verbose_msg')"
+			vt_rsp_code="$(jq '.response_code' "$vt_report")"
+			vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 			# retry if report isn't ready
 			if [ "$vt_rsp_code" -eq -2 ]; then
 				while [ "$vt_rsp_code" -eq -2 ]; do
@@ -184,18 +184,18 @@ function virustotal {
 					log "attempting to retrieve virustotal scan report"
 					echo "attempting to retrieve virustotal scan report"
 					curl --request POST --url "$vt_api_report"_url -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
-					vt_rsp_code="$(cat "$vt_report" | jq '.response_code')"
-					vt_verbose_msg="$(cat "$vt_report" | jq '.verbose_msg')"
+					vt_rsp_code="$(jq '.response_code' "$vt_report")"
+					vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 				done
 #### note: should check other response codes here...
 			fi
 			# write vendors to file for later checks
-			cat "$vt_report" | jq '.scans | . as $object | keys[] | select($object[.].detected == true)' > "$vt_vendors"
+			jq '.scans | . as $object | keys[] | select($object[.].detected == true)' "$vt_report" > "$vt_vendors"
 			# set variables
-			vt_total="$(cat "$vt_report" | jq '.total')"
-			vt_positives="$(cat "$vt_report" | jq '.positives')"
-			vt_scan_date="$(cat "$vt_report" | jq '.scan_date')"
-			vt_permalink="$(cat "$vt_report" | jq '.permalink')"
+			vt_total="$(jq '.total' "$vt_report")"
+			vt_positives="$(jq '.positives' "$vt_report")"
+			vt_scan_date="$(jq '.scan_date' "$vt_report")"
+			vt_permalink="$(jq '.permalink' "$vt_report")"
 			# log
 			log "virustotal report scan date: $vt_scan_date"
 			echo "virustotal report scan date: $vt_scan_date"
@@ -210,8 +210,8 @@ function virustotal {
 			sleep 2
 			# rescan file using sha256sum to get latest results from virustotal
 			curl --request POST --url "$vt_api_rescan_url" -d apikey="$virustotal_api_key" -d resource="$vt_sha256" > "$vt_rescan"
-			vt_scan_id="$(cat "$vt_rescan" | jq '.scan_id' | awk -F '"' '{print $2}')" # must remove double quotes
-			vt_verbose_msg="$(cat "$vt_rescan" | jq '.verbose_msg')"
+			vt_scan_id="$(jq '.scan_id' "$vt_rescan" | awk -F '"' '{print $2}')" # must remove double quotes
+			vt_verbose_msg="$(jq '.verbose_msg' "$vt_rescan")"
 			log "virustotal rescan submitted - scan id: $vt_scan_id"
 			echo "virustotal rescan submitted - scan id: $vt_scan_id"
 			log "virustotal verbose msg: $vt_verbose_msg"
@@ -223,8 +223,8 @@ function virustotal {
 			log "attempting to retrieve virustotal scan report"
 			echo "attempting to retrieve virustotal scan report"
 			curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
-			vt_rsp_code="$(cat "$vt_report" | jq '.response_code')"
-			vt_verbose_msg="$(cat "$vt_report" | jq '.verbose_msg')"
+			vt_rsp_code="$(jq '.response_code' "$vt_report")"
+			vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 			# retry if report isn't ready
 			if [ "$vt_rsp_code" -eq -2 ]; then
 				while [ "$vt_rsp_code" -eq -2 ]; do
@@ -236,18 +236,18 @@ function virustotal {
 					log "attempting to retrieve virustotal scan report"
 					echo "attempting to retrieve virustotal scan report"
 					curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
-					vt_rsp_code="$(cat "$vt_report" | jq '.response_code')"
-					vt_verbose_msg="$(cat "$vt_report" | jq '.verbose_msg')"
+					vt_rsp_code="$(jq '.response_code' "$vt_report")"
+					vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 				done	
 #### note: should check other response codes here...
 			fi
 			# write vendors to file for later checks
-			cat "$vt_report" | jq '.scans | . as $object | keys[] | select($object[.].detected == true)' > "$vt_vendors"
+			jq '.scans | . as $object | keys[] | select($object[.].detected == true)' "$vt_report" > "$vt_vendors"
 			# set variables
-			vt_total="$(cat "$vt_report" | jq '.total')"
-			vt_positives="$(cat "$vt_report" | jq '.positives')"
-			vt_scan_date="$(cat "$vt_report" | jq '.scan_date')"
-			vt_permalink="$(cat "$vt_report" | jq '.permalink')"
+			vt_total="$(jq '.total' "$vt_report")"
+			vt_positives="$(jq '.positives' "$vt_report"))"
+			vt_scan_date="$(jq '.scan_date' "$vt_report"))"
+			vt_permalink="$(jq '.permalink' "$vt_report"))"
 			# log
 			log "virustotal report scan date: $vt_scan_date"
 			echo "virustotal report scan date: $vt_scan_date"
@@ -266,8 +266,8 @@ function virustotal {
 		# add comment to VT resource
 		vt_comment="Submitted using $mss_name $mss_version - $github_repo - Sample name: $filename - Sample description: $description"
 		curl --request POST --url "$vt_api_comment_url" -d apikey="$virustotal_api_key" -d resource="$vt_sha256" -d comment="$vt_comment" > "$vt_report"
-		vt_rsp_code="$(cat "$vt_report" | jq '.response_code')"
-		vt_verbose_msg="$(cat "$vt_report" | jq '.verbose_msg')"
+		vt_rsp_code="$(jq '.response_code' "$vt_report"))"
+		vt_verbose_msg="$(jq '.verbose_msg' "$vt_report"))"
 		log "virustotal verbose msg: $vt_verbose_msg"
 		echo "virustotal verbose msg: $vt_verbose_msg"
 		if [ "$vt_rsp_code" -eq 1 ]; then
