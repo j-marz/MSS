@@ -374,7 +374,7 @@ else
 fi
 
 # count number of vendors
-vendor_total="$(grep -v '^$\|^#' "$vendors_email" | wc -l)"
+vendor_total="$(grep -cv '^$\|^#' "$vendors_email")"
 log "$vendor_total vendor configs loaded"
 
 # virustotal scans
