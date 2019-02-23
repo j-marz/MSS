@@ -414,15 +414,21 @@ echo "sample sent to $emails_sent of $vendor_total vendors"
 
 # custom AV sample submission tools
 # submit samples using clamav clamsubmit cli tool - submit as false negative
-if [ -x "$(command -v "clamsubmit")" ]; then
-	log "clamsubmit tool found - reporting to ClamAV"
-	echo "clamsubmit tool found - reporting to ClamAV"
-	clamsubmit -e "$report_email" -N "$mss_name $mss_version" -n "$full_filename"
+if ! grep -Fiq "ClamAV" "$vt_vendors"; then	# only submit if ClamAV doesn't detect malware
+	log "ClamAV did not detect malware through virustotal - proceeding to sample submission"
+	echo "ClamAV did not detect malware through virustotal - proceeding to sample submission"
+	if [ -x "$(command -v "clamsubmit")" ]; then
+		log "clamsubmit tool found - reporting to ClamAV"
+		echo "clamsubmit tool found - reporting to ClamAV"
+		clamsubmit -e "$report_email" -N "$mss_name $mss_version" -n "$full_filename"
+	else
+		log "WARN: clamsubmit tool not found - skipping submission to ClamAV"
+		echo "WARN: clamsubmit tool not found - skipping submission to ClamAV"
+	fi
 else
-	log "WARN: clamsubmit tool not found - skipping submission to ClamAV"
-	echo "WARN: clamsubmit tool not found - skipping submission to ClamAV"
+	log "ClamAV detected malware through virustotal - skipping submission"
+	echo "ClamAV detected malware through virustotal - skipping submission"
 fi
-
 
 # web submission loop
 
