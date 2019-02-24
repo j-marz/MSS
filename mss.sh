@@ -18,7 +18,7 @@ config="mss.conf"
 vendors_email="vendors_email.conf"
 vendors_web="vendors_web.conf"
 log="mss.log"
-dependencies=(mail zip 7z jq curl)	#excluded clamsubmit as it's optional
+dependencies=(mail zip 7z jq curl tee)	#excluded clamsubmit as it's optional
 mss_name="Malware Sample Sender"
 mss_version="v0.2"
 vt_api_scan_url="https://www.virustotal.com/vtapi/v2/file/scan"
@@ -33,7 +33,7 @@ source "$config"
 # ----- functions -----
 # logging function
 function log {
-	echo "[$(date --rfc-3339=seconds)]: $*" >> "$log"
+	echo "[$(date --rfc-3339=seconds)]: $*" | tee -a "$log"
 }
 
 # check for dependencies
@@ -94,7 +94,6 @@ function create_archive {
 	else
 		# skip current lopp iteration if not zip or 7z
 		log "unknown archive type for $vendor_name - no archive created - check $vendors_email"
-		echo "unknown archive type for $vendor_name - no archive created - check $vendors_email"
 		# loop control
 		#continue # this doesn't work from within a function?
 		loop_control="continue"
@@ -141,7 +140,6 @@ function virustotal {
 	#check if api key exists in config
 	if [ -z "$virustotal_api_key" ]; then
 		log "virustotal_api_key is null, skipping virustotal scans"
-		echo "virustotal_api_key is null, skipping virustotal scans"
 	else
 		vt_scan="/tmp/vt_scan.json"
 		vt_rescan="/tmp/vt_rescan.json"
@@ -157,19 +155,15 @@ function virustotal {
 		vt_verbose_msg="$(jq '.verbose_msg' "$vt_scan")"
 		# log
 		log "virustotal scan submitted - scan id: $vt_scan_id"
-		echo "virustotal scan submitted - scan id: $vt_scan_id"
 		log "virustotal verbose msg: $vt_verbose_msg"
-		echo "virustotal verbose msg: $vt_verbose_msg"
 		# determine next action based on response code
 		if [ "$vt_rsp_code" -eq 0 ]; then
 			log "no data exists in virustotal database - this is a brand new submission"
-			echo "no data exists in virustotal database - this is a brand new submission"
 			# wait for scan to complete - sleep for 30 seconds
-			echo "waiting 30sec for virustotal scan to complete"
+			log "waiting 30sec for virustotal scan to complete"
 			sleep 30
 			# retrieve scan report
 			log "attempting to retrieve virustotal scan report"
-			echo "attempting to retrieve virustotal scan report"
 			curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
 			vt_rsp_code="$(jq '.response_code' "$vt_report")"
 			vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
@@ -177,12 +171,9 @@ function virustotal {
 			if [ "$vt_rsp_code" -eq -2 ]; then
 				while [ "$vt_rsp_code" -eq -2 ]; do
 					log "virustotal verbose msg: $vt_verbose_msg"
-					echo "virustotal verbose msg: $vt_verbose_msg"
 					log "sleeping for another 30sec..."
-					echo "sleeping for another 30sec..."
 					sleep 30
 					log "attempting to retrieve virustotal scan report"
-					echo "attempting to retrieve virustotal scan report"
 					curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
 					vt_rsp_code="$(jq '.response_code' "$vt_report")"
 					vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
@@ -198,14 +189,10 @@ function virustotal {
 			vt_permalink="$(jq '.permalink' "$vt_report")"
 			# log
 			log "virustotal report scan date: $vt_scan_date"
-			echo "virustotal report scan date: $vt_scan_date"
 			log "virustotal report link: $vt_permalink"
-			echo "virustotal report link: $vt_permalink"
 			log "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
-			echo "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 		elif [ "$vt_rsp_code" -eq 1 ]; then
 			log "file found in virustotal database - rescaning to get latest detection results"
-			echo "file found in virustotal database - rescaning to get latest detection results"
 			# wait 2 seconds - probably not required...
 			sleep 2
 			# rescan file using sha256sum to get latest results from virustotal
@@ -213,15 +200,12 @@ function virustotal {
 			vt_scan_id="$(jq '.scan_id' "$vt_rescan" | awk -F '"' '{print $2}')" # must remove double quotes
 			vt_verbose_msg="$(jq '.verbose_msg' "$vt_rescan")"
 			log "virustotal rescan submitted - scan id: $vt_scan_id"
-			echo "virustotal rescan submitted - scan id: $vt_scan_id"
 			log "virustotal verbose msg: $vt_verbose_msg"
-			echo "virustotal verbose msg: $vt_verbose_msg"
 			# wait for scan to complete - sleep for 30 seconds
-			echo "waiting 30sec for virustotal rescan to complete"
+			log "waiting 30sec for virustotal rescan to complete"
 			sleep 30
 			# retrieve scan report
 			log "attempting to retrieve virustotal scan report"
-			echo "attempting to retrieve virustotal scan report"
 			curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
 			vt_rsp_code="$(jq '.response_code' "$vt_report")"
 			vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
@@ -229,12 +213,9 @@ function virustotal {
 			if [ "$vt_rsp_code" -eq -2 ]; then
 				while [ "$vt_rsp_code" -eq -2 ]; do
 					log "virustotal verbose msg: $vt_verbose_msg"
-					echo "virustotal verbose msg: $vt_verbose_msg"
 					log "sleeping for another 30sec..."
-					echo "sleeping for another 30sec..."
 					sleep 30
 					log "attempting to retrieve virustotal scan report"
-					echo "attempting to retrieve virustotal scan report"
 					curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
 					vt_rsp_code="$(jq '.response_code' "$vt_report")"
 					vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
@@ -250,18 +231,12 @@ function virustotal {
 			vt_permalink="$(jq '.permalink' "$vt_report"))"
 			# log
 			log "virustotal report scan date: $vt_scan_date"
-			echo "virustotal report scan date: $vt_scan_date"
 			log "virustotal report link: $vt_permalink"
-			echo "virustotal report link: $vt_permalink"
 			log "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
-			echo "$vt_positives out of $vt_total vendors detected file as malware through virustotal"
 		else 
 			log "unexpected response code from virustotal - response_code: $vt_rsp_code"
-			echo "unexpected response code from virustotal - response_code: $vt_rsp_code"
 			log "aborting virustotal scan"
-			echo "aborting virustotal scan"
 			log "sample will be submitted to all vendors"
-			echo "sample will be submitted to all vendors"
 		fi
 		# add comment to VT resource
 		vt_comment="Submitted using $mss_name $mss_version - $github_repo - Sample name: $filename - Sample description: $description"
@@ -269,13 +244,10 @@ function virustotal {
 		vt_rsp_code="$(jq '.response_code' "$vt_report"))"
 		vt_verbose_msg="$(jq '.verbose_msg' "$vt_report"))"
 		log "virustotal verbose msg: $vt_verbose_msg"
-		echo "virustotal verbose msg: $vt_verbose_msg"
 		if [ "$vt_rsp_code" -eq 1 ]; then
 			log "comment added to virustotal resource - response_code: $vt_rsp_code"
-			echo "comment added to virustotal resource - response_code: $vt_rsp_code"
 		else
 			log "something went wrong with comment - response_code: $vt_rsp_code"
-			echo "something went wrong with comment - response_code: $vt_rsp_code"
 		fi
 	fi
 }
@@ -288,7 +260,6 @@ function vt_lookup {
 		# skip current loop iteration if vendor detected malware in virustotal scan
 		if grep -Fiq "$vendor_name" "$vt_vendors"; then
 			log "$vendor_name detected malware through virustotal - skipping submission"
-			echo "skipping submission"
 			# loop control
 			#continue # this doesn't work from within a function?
 			loop_control="continue"
@@ -330,7 +301,6 @@ function abort {
 }
 
 function finish {
-	echo "MSS has finished"
 	log "mss.sh finished"
 	exit
 }
@@ -422,24 +392,19 @@ grep -v '^$\|^#' "$vendors_email" | while IFS=, read col1 col2 col3 col4 col5
 # count email submission
 emails_sent="$(cat emails_sent.txt)"
 log "sample sent to $emails_sent of $vendor_total vendors"
-echo "sample sent to $emails_sent of $vendor_total vendors"
 
 # custom AV sample submission tools
 # submit samples using clamav clamsubmit cli tool - submit as false negative
 if ! grep -Fiq "ClamAV" "$vt_vendors"; then	# only submit if ClamAV doesn't detect malware
 	log "ClamAV did not detect malware through virustotal - proceeding to sample submission"
-	echo "ClamAV did not detect malware through virustotal - proceeding to sample submission"
 	if [ -x "$(command -v "clamsubmit")" ]; then
 		log "clamsubmit tool found - reporting to ClamAV"
-		echo "clamsubmit tool found - reporting to ClamAV"
 		clamsubmit -e "$report_email" -N "$mss_name $mss_version" -n "$full_filename"
 	else
 		log "WARN: clamsubmit tool not found - skipping submission to ClamAV"
-		echo "WARN: clamsubmit tool not found - skipping submission to ClamAV"
 	fi
 else
 	log "ClamAV detected malware through virustotal - skipping submission"
-	echo "ClamAV detected malware through virustotal - skipping submission"
 fi
 
 # web submission loop
