@@ -62,6 +62,16 @@ else
 fi
 }
 
+# check http response code
+function http_check {
+	declare -i http_status	# only allow integer for http status code
+	http_status="$(tail -n 1 "$1")" # last line contains http_code from cURL
+	if [ "$http_status" -ne 200 ]; then
+		echo "Error: HTTP status $http_status from VirusTotal in $1"
+		abort
+	fi
+}
+
 # archive function
 function create_archive {
 	# set archive name
@@ -147,7 +157,8 @@ function virustotal {
 		vt_vendors="/tmp/vt_vendors.json"
 		# submit sample to virustotal public api
 			# consider changing this to search for sha256 instead of uploading file to save bandwidth and time
-		curl -F file=@"$full_filename" -F apikey="$virustotal_api_key" "$vt_api_scan_url" > "$vt_scan"
+		curl --write-out "\n%{http_code}\n" -F file=@"$full_filename" -F apikey="$virustotal_api_key" "$vt_api_scan_url" > "$vt_scan"
+		http_check "$vt_scan"
 		# set variables from vt json response
 		vt_scan_id="$(jq '.scan_id' "$vt_scan" | awk -F '"' '{print $2}')" # must remove double quotes
 		vt_sha256="$(jq '.sha256' "$vt_scan" | awk -F '"' '{print $2}')" # must remove double quotes
@@ -164,7 +175,8 @@ function virustotal {
 			sleep 30
 			# retrieve scan report
 			log "attempting to retrieve virustotal scan report"
-			curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+			curl --write-out "\n%{http_code}\n" --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+			http_check "$vt_scan_id"
 			vt_rsp_code="$(jq '.response_code' "$vt_report")"
 			vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 			# retry if report isn't ready
@@ -174,7 +186,8 @@ function virustotal {
 					log "sleeping for another 30sec..."
 					sleep 30
 					log "attempting to retrieve virustotal scan report"
-					curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+					curl --write-out "\n%{http_code}\n" --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+					http_check "$vt_report"
 					vt_rsp_code="$(jq '.response_code' "$vt_report")"
 					vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 				done
@@ -196,7 +209,8 @@ function virustotal {
 			# wait 2 seconds - probably not required...
 			sleep 2
 			# rescan file using sha256sum to get latest results from virustotal
-			curl --request POST --url "$vt_api_rescan_url" -d apikey="$virustotal_api_key" -d resource="$vt_sha256" > "$vt_rescan"
+			curl --write-out "\n%{http_code}\n" --request POST --url "$vt_api_rescan_url" -d apikey="$virustotal_api_key" -d resource="$vt_sha256" > "$vt_rescan"
+			http_check "$vt_rescan"
 			vt_scan_id="$(jq '.scan_id' "$vt_rescan" | awk -F '"' '{print $2}')" # must remove double quotes
 			vt_verbose_msg="$(jq '.verbose_msg' "$vt_rescan")"
 			log "virustotal rescan submitted - scan id: $vt_scan_id"
@@ -206,7 +220,8 @@ function virustotal {
 			sleep 30
 			# retrieve scan report
 			log "attempting to retrieve virustotal scan report"
-			curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+			curl --write-out "\n%{http_code}\n" --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+			http_check "$vt_report"
 			vt_rsp_code="$(jq '.response_code' "$vt_report")"
 			vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 			# retry if report isn't ready
@@ -216,7 +231,8 @@ function virustotal {
 					log "sleeping for another 30sec..."
 					sleep 30
 					log "attempting to retrieve virustotal scan report"
-					curl --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+					curl --write-out "\n%{http_code}\n" --request POST --url "$vt_api_report_url" -d apikey="$virustotal_api_key" -d resource="$vt_scan_id" > "$vt_report"
+					http_check "$vt_report"
 					vt_rsp_code="$(jq '.response_code' "$vt_report")"
 					vt_verbose_msg="$(jq '.verbose_msg' "$vt_report")"
 				done	
@@ -240,7 +256,8 @@ function virustotal {
 		fi
 		# add comment to VT resource
 		vt_comment="Submitted using $mss_name $mss_version - $github_repo - Sample name: $filename - Sample description: $description"
-		curl --request POST --url "$vt_api_comment_url" -d apikey="$virustotal_api_key" -d resource="$vt_sha256" -d comment="$vt_comment" > "$vt_report"
+		curl --write-out "\n%{http_code}\n" --request POST --url "$vt_api_comment_url" -d apikey="$virustotal_api_key" -d resource="$vt_sha256" -d comment="$vt_comment" > "$vt_report"
+		http_check "$vt_report"
 		vt_rsp_code="$(jq '.response_code' "$vt_report"))"
 		vt_verbose_msg="$(jq '.verbose_msg' "$vt_report"))"
 		log "virustotal verbose msg: $vt_verbose_msg"
