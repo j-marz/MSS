@@ -104,9 +104,7 @@ function create_archive {
 	else
 		# skip current lopp iteration if not zip or 7z
 		log "unknown archive type for $vendor_name - no archive created - check $vendors_email"
-		# loop control
-		#continue # this doesn't work from within a function?
-		loop_control="continue"
+		return 1
 	fi
 }
 
@@ -277,9 +275,7 @@ function vt_lookup {
 		# skip current loop iteration if vendor detected malware in virustotal scan
 		if grep -Fiq "$vendor_name" "$vt_vendors"; then
 			log "$vendor_name detected malware through virustotal - skipping submission"
-			# loop control
-			#continue # this doesn't work from within a function?
-			loop_control="continue"
+			return 1
 		else
 			# continue with sample submission
 			log "$vendor_name did not detect malware through virustotal - proceeding to sample submission"
@@ -385,20 +381,8 @@ grep -v '^$\|^#' "$vendors_email" | while IFS=, read col1 col2 col3 col4 col5
 		archive_password="$col5"
 		# run functions 
 		progress
-		vt_lookup
-		# loop control for functions
-		if [[ "$loop_control" = "continue" ]]; then
-			# clear variable
-			loop_control=""
-			continue
-		fi
-		create_archive
-		# loop control for functions
-		if [[ "$loop_control" = "continue" ]]; then
-			# clear variable
-			loop_control=""
-			continue
-		fi
+		vt_lookup || continue
+		create_archive || continue
 		send_email
 		email_count
 		#preserve emails_sent variable for use outside of while loop
